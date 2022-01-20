@@ -6,8 +6,7 @@ import { ThreeDots } from 'react-loader-spinner';
 
 function App() {
     const [list, setList] = useState<Picture[]>([]);
-    const [liked, setLiked] = useState<Picture[]>([]);
-    const [likedDates, setLikedDates] = useState<string[]>([]);
+    const [liked, setLiked] = useState<string[]>([]);
     const [daysAgo, setDaysAgo] = useState<number>(10);
 
     const LoadingIndicator = () => {
@@ -20,18 +19,21 @@ function App() {
     }
 
     useEffect(() => {
+        const likedLocalStorage = localStorage.getItem("liked");
+        const likedParsed = likedLocalStorage ? JSON.parse(likedLocalStorage) : [];
+        setLiked(likedParsed);
         queryRange(getDaysAgo(10), getCurrentDate());
     }, []);
 
     return (
         <div className="App">
             <header>
-                <span className="logo">Spacetagram</span>
+                <span className="logo">Spacestagram</span>
             </header>
             <div className="content">
                 <div className="cards">
                     {list.map((item) => {
-                        const liked = likedDates.includes(item.date);
+                        const isLiked = liked.includes(item.date);
                         return (
                             <div className="card">
                                 <img src={item.url} alt={item.title} />
@@ -45,16 +47,16 @@ function App() {
                                         <button>Share</button>
 
                                         <button
-                                            className={ liked ? "liked" : "" }
+                                            className={ isLiked ? "liked" : "" }
                                             onClick={() => {
-                                                if (liked) {
+                                                if (isLiked) {
                                                     unlike(item)
                                                 } else {
                                                     like(item)
                                                 }
                                             }}
                                         >
-                                            { liked ? "Unlike"  : "Like"}
+                                            { isLiked ? "Unlike"  : "Like"}
                                         </button>
                                     </div>
                                 </div>
@@ -91,54 +93,43 @@ function App() {
     }
 
     function like(picture: Picture) {
-        setLiked((prevState) => [
-            ...prevState,
-            {
-                copyright: picture.copyright,
-                date: picture.date,
-                explanation: picture.explanation,
-                hdurl: picture.hdurl,
-                mediaType: picture.mediaType,
-                serviceVersion: picture.serviceVersion,
-                title: picture.title,
-                url: picture.url,
-            }
-        ]);
-        setLikedDates((prevState) => [
-            ...prevState,
-            picture.date
-        ]);
+        setLiked((prevState) => {
+            let newState = [ ...prevState, picture.date ];
+            localStorage.setItem("liked", JSON.stringify(newState));
+            console.log(newState)
+            return newState;
+        });
     }
 
     function unlike(picture: Picture) {
-        setLiked((prevState) => [
-            ...(prevState.filter(item => item !== picture))
-        ]);
-        setLikedDates((prevState) => [
-            ...(prevState.filter(item => item !== picture.date))
-        ]);
+        setLiked((prevState) =>  {
+            let newState = [ ...(prevState.filter(item => item !== picture.date)) ]
+            localStorage.setItem("liked", JSON.stringify(newState));
+            console.log(newState)
+            return newState;
+        });
     }
 
-    function queryDate() {
-        fetch(
-            "https://api.nasa.gov/planetary/apod?api_key=XSPgDz48OzDrdgfz5ACZThYxHvY7IwyUWFYbClbH",
-            {
-                "method": "GET",
-            })
-            .then(response => response.json())
-            .then(response => {
-                setList([{
-                    copyright: response['copyright'],
-                    date: response['date'],
-                    explanation: response['explanation'],
-                    hdurl: response['hdurl'],
-                    mediaType: response['mediaType'],
-                    serviceVersion: response['serviceVersion'],
-                    title: response['title'],
-                    url: response['url'],
-                }]);
-            });
-    }
+    // function queryDate() {
+    //     fetch(
+    //         "https://api.nasa.gov/planetary/apod?api_key=XSPgDz48OzDrdgfz5ACZThYxHvY7IwyUWFYbClbH",
+    //         {
+    //             "method": "GET",
+    //         })
+    //         .then(response => response.json())
+    //         .then(response => {
+    //             setList([{
+    //                 copyright: response['copyright'],
+    //                 date: response['date'],
+    //                 explanation: response['explanation'],
+    //                 hdurl: response['hdurl'],
+    //                 mediaType: response['mediaType'],
+    //                 serviceVersion: response['serviceVersion'],
+    //                 title: response['title'],
+    //                 url: response['url'],
+    //             }]);
+    //         });
+    // }
 
     function queryRange(startDate: string, endDate: string) {
         trackPromise(
@@ -151,19 +142,6 @@ function App() {
                 setList(response.reverse());
             }));
     }
-
-    // function loadMore(newOldestDate: string, oldestDate: string) {
-    //     fetch( "https://api.nasa.gov/planetary/apod?api_key=XSPgDz48OzDrdgfz5ACZThYxHvY7IwyUWFYbClbH&start_date=" + newOldestDate + "&end_date=" + oldestDate,
-    //         {
-    //             "method": "GET",
-    //         })
-    //         .then(response => response.json())
-    //         .then(response => {
-    //             setList((prevState) => [
-    //                 ...prevState,
-    //                 ...(response),
-    //         });
-    // }
 }
 
 interface Picture  {
