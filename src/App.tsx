@@ -4,7 +4,8 @@ import YoutubeEmbed from './components/YoutubeEmbed';
 import { useState, useEffect } from 'react';
 import { trackPromise } from 'react-promise-tracker';
 import { ToastContainer, toast } from 'react-toastify';
-import "react-toastify/dist/ReactToastify.css";
+import 'react-toastify/dist/ReactToastify.css';
+import { DiGithubBadge } from 'react-icons/di';
 
 function App() {
     // Setup states.
@@ -26,6 +27,7 @@ function App() {
         <div className="App">
             <header>
                 <span className="logo">Spacestagram</span>
+                <a href="https://github.com/hisbaan/spacestagram" className="icon"><DiGithubBadge /></a>
             </header>
             <div className="content">
                 <div className="cards">
@@ -56,7 +58,7 @@ function App() {
                                                 }
                                             }}
                                         >
-                                            { isLiked ? "Unlike"  : "Like"}
+                                            { isLiked ? "Unlike"  :  "Like"}
                                         </button>
                                     </div>
                                 </div>
@@ -118,7 +120,7 @@ function App() {
      */
     function share(picture: Picture) {
         navigator.clipboard.writeText(picture.hdurl);
-        toast.dark('Copied ' + picture.date + ' APOD Link to Clipboard', {
+        toast.dark('Copied link to clipboard', {
             position: "top-right",
             autoClose: 5000,
             hideProgressBar: false,

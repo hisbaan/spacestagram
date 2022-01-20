@@ -181,3 +181,21 @@ header {
     position: absolute;
 }
 
+.icon {
+    font-size: 3em;
+    line-height: 0;
+    color: var(--base07);
+    text-decoration: none;
+
+    transition: all ease-in-out 175ms;
+}
+
+.icon:link, .icon:visited {
+    color: var(--base07);
+}
+
+@media (hover:hover) {
+    .icon:hover {
+        color: var(--base09);
+    }
+}
