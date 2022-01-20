@@ -119,7 +119,15 @@ function App() {
      * @param {picture: Picture} The picture to be shared.
      */
     function share(picture: Picture) {
-        navigator.clipboard.writeText(picture.hdurl);
+        let shareUrl = "";
+
+        if (picture.media_type === "image") {
+            shareUrl = picture.hdurl;
+        } else {
+            shareUrl = picture.url;
+        }
+
+        navigator.clipboard.writeText(shareUrl);
         toast.dark('Copied link to clipboard', {
             position: "top-right",
             autoClose: 5000,
