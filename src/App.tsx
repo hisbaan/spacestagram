@@ -1,27 +1,24 @@
-import { useState, useEffect } from 'react';
 import './App.css';
-import { usePromiseTracker } from 'react-promise-tracker';
+import LoadingIndicator from './components/LoadingIndicator';
+import YoutubeEmbed from './components/YoutubeEmbed';
+import { useState, useEffect } from 'react';
 import { trackPromise } from 'react-promise-tracker';
-import { ThreeDots } from 'react-loader-spinner';
+import { ToastContainer, toast } from 'react-toastify';
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
+    // Setup states.
     const [list, setList] = useState<Picture[]>([]);
     const [liked, setLiked] = useState<string[]>([]);
     const [daysAgo, setDaysAgo] = useState<number>(10);
 
-    const LoadingIndicator = () => {
-        const { promiseInProgress } = usePromiseTracker();
-        return (
-            <div className="spinner-container">
-                {promiseInProgress && <ThreeDots color="var(--base09)" height="200" width="200" />}
-            </div>
-        );
-    }
-
     useEffect(() => {
+        // Get the liked posts from localStorage.
         const likedLocalStorage = localStorage.getItem("liked");
         const likedParsed = likedLocalStorage ? JSON.parse(likedLocalStorage) : [];
         setLiked(likedParsed);
+
+        // Fetch images from the NASA APOD API.
         queryRange(getDaysAgo(10), getCurrentDate());
     }, []);
 
@@ -33,21 +30,24 @@ function App() {
             <div className="content">
                 <div className="cards">
                     {list.map((item) => {
+                        // Setup a constant for if the item is liked or not.
                         const isLiked = liked.includes(item.date);
+
+                        // Display a card.
                         return (
                             <div className="card">
-                                <img src={item.url} alt={item.title} />
+                                {/* Show a youtube embed if the item type is "video" */}
+                                {item.media_type === "video" ? <YoutubeEmbed  url={item.url} /> : <img src={item.url} alt={item.title} /> }
                                 <div className="card-container">
                                     <h3>{item.title}</h3>
                                     <p className="copyright">
-                                        {item.date + " - " + item.copyright}
+                                        {item.copyright ? item.date + " - " + item.copyright : item.date}
                                     </p>
                                     <p>{item.explanation}</p>
                                     <div className="buttons">
-                                        <button>Share</button>
-
+                                        <button className="button" onClick={() => share(item)}>Share</button>
                                         <button
-                                            className={ isLiked ? "liked" : "" }
+                                            className={ isLiked ? "liked button" : "button" }
                                             onClick={() => {
                                                 if (isLiked) {
                                                     unlike(item)
@@ -64,17 +64,31 @@ function App() {
                         );
                     })}
                 </div>
-                <button onClick={() => {
-
+                <button className="button" onClick={() => {
                     queryRange(getDaysAgo(daysAgo + 10), getCurrentDate());
-                    // loadMore(getDaysAgo(daysAgo + 10), getDaysAgo(daysAgo + 1))
                     setDaysAgo((prevState) => prevState + 10)
-                }}>Load More</button>
+                }}>
+                    Load More
+                </button>
                 <LoadingIndicator />
+                <ToastContainer
+                    position="top-right"
+                    autoClose={5000}
+                    hideProgressBar={false}
+                    newestOnTop={false}
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                    />
             </div>
         </div>
     );
 
+    /**
+     * Get the curreny system date.
+     */
     function getCurrentDate() {
         let d = new Date();
         let date = d.getDate();
@@ -83,6 +97,11 @@ function App() {
         return `${year}-${month<10?`0${month}`:`${month}`}-${date}`
     }
 
+    /**
+     * Get the ISO date string from `x` number of days ago.
+     *
+     * @param {days: number} The number of days ago to fetch the date string for.
+     */
     function getDaysAgo(days: number) {
         let d = new Date();
         d.setDate(d.getDate() - days);
@@ -92,6 +111,29 @@ function App() {
         return `${year}-${month<10?`0${month}`:`${month}`}-${date}`
     }
 
+    /**
+     * Share the hdurl of the APOD and show a toast saying it has been copied.
+     *
+     * @param {picture: Picture} The picture to be shared.
+     */
+    function share(picture: Picture) {
+        navigator.clipboard.writeText(picture.hdurl);
+        toast.dark('Copied ' + picture.date + ' APOD Link to Clipboard', {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+        });
+    }
+
+    /**
+     * Like an image by adding it to the list of liked images.
+     *
+     * @param {picture: Picture} The picture to be liked.
+     */
     function like(picture: Picture) {
         setLiked((prevState) => {
             let newState = [ ...prevState, picture.date ];
@@ -101,6 +143,12 @@ function App() {
         });
     }
 
+
+    /**
+     * Unlike an image by adding it to the list of liked images.
+     *
+     * @param {picture: Picture} The picture to be unliked.
+     */
     function unlike(picture: Picture) {
         setLiked((prevState) =>  {
             let newState = [ ...(prevState.filter(item => item !== picture.date)) ]
@@ -110,27 +158,12 @@ function App() {
         });
     }
 
-    // function queryDate() {
-    //     fetch(
-    //         "https://api.nasa.gov/planetary/apod?api_key=XSPgDz48OzDrdgfz5ACZThYxHvY7IwyUWFYbClbH",
-    //         {
-    //             "method": "GET",
-    //         })
-    //         .then(response => response.json())
-    //         .then(response => {
-    //             setList([{
-    //                 copyright: response['copyright'],
-    //                 date: response['date'],
-    //                 explanation: response['explanation'],
-    //                 hdurl: response['hdurl'],
-    //                 mediaType: response['mediaType'],
-    //                 serviceVersion: response['serviceVersion'],
-    //                 title: response['title'],
-    //                 url: response['url'],
-    //             }]);
-    //         });
-    // }
-
+    /**
+     * Query the NASA APOD api for the images and their descriptions.
+     *
+     * @param {startDate: string} The first day to get the range of images from.
+     * @param {endDate: string} The last day to get the range of images from.
+     */
     function queryRange(startDate: string, endDate: string) {
         trackPromise(
             fetch( "https://api.nasa.gov/planetary/apod?api_key=XSPgDz48OzDrdgfz5ACZThYxHvY7IwyUWFYbClbH&start_date=" + startDate + "&end_date=" + endDate,
@@ -140,6 +173,7 @@ function App() {
             .then(response => response.json())
             .then(response => {
                 setList(response.reverse());
+                console.log(response);
             }));
     }
 }
@@ -149,8 +183,8 @@ interface Picture  {
     date: string;
     explanation: string;
     hdurl: string;
-    mediaType: string;
-    serviceVersion: string;
+    media_type: string;
+    service_version: string;
     title: string;
     url: string;
 }

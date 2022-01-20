@@ -54,9 +54,14 @@ header {
 .cards {
     display: grid;
     gap: 1em;
-    grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
-    /* grid-template-columns: repeat(auto-fit, min(500px, 1fr)); */
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
     margin: 1em 0;
+}
+
+@media(max-width: 700px) {
+    .cards {
+        grid-template-columns: 1fr;
+    }
 }
 
 .card {
@@ -114,7 +119,7 @@ header {
     gap: 1em;
 }
 
-button {
+.button {
     color: var(--base07);
     font-weight: bold;
     font-size: 14px;
@@ -134,7 +139,7 @@ button {
 }
 
 @media (hover:hover) {
-    button:hover {
+    .button:hover {
         background-color: var(--base09);
         color: var(--base00);
     }
@@ -156,3 +161,23 @@ button {
     height: 100%;
     pointer-events: none;
 }
+
+.video-responsive {
+    overflow: hidden;
+    padding-bottom: 56.25%;
+    position: relative;
+    height: 0;
+    border-top-left-radius: inherit;
+    border-top-right-radius: inherit;
+}
+
+.video-responsive iframe {
+    border-top-left-radius: inherit;
+    border-top-right-radius: inherit;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+}
+
